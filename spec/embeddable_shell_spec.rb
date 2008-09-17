@@ -14,4 +14,18 @@ describe Rush::EmbeddableShell do
 			root.class.should == Rush::Dir
 		}
 	end
+	
+	it "should delegate to the first_delegate if one is passed in" do
+		class FirstDelegate
+			def first_method
+				"first_method"
+			end
+		end
+		@shell.first_delegate = FirstDelegate.new
+		@shell.first_method.should == "first_method"
+		@shell.execute_in_shell {
+			root.class.should == Rush::Dir
+			first_method.should == "first_method"
+		}
+	end
 end

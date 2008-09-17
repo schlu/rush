@@ -6,16 +6,25 @@ module Rush
 	# 
 	# Delegates unknown method calls to a Rush::Shell instance
 	class EmbeddableShell
-		attr_accessor :shell
-		def initialize(suppress_output = true)
+		attr_accessor :shell, :first_delegate
+		# options 
+		# :first_delegate  | default nil
+		# :suppress_output | default true
+		def initialize(options={})
+			options = {:suppress_output => true}.merge(options)
 			self.shell = Rush::Shell.new
-			shell.suppress_output = suppress_output
+			shell.suppress_output = options[:suppress_output]
+			self.first_delegate = options[:first_delegate]
 		end
 		
-		# evalutes and unkown method call agains the rush shell
+		# evalutes and unkown method call against the rush shell
 		def method_missing(sym, *args, &block)
-			shell.execute sym.to_s
-			$last_res
+			if first_delegate && first_delegate.respond_to?(sym)
+				first_delegate.send(sym, *args, &block)
+			else
+				shell.execute sym.to_s
+				$last_res
+			end
 		end
 		
 		# take a whole block and execute it as if it were inside a shell
